@@ -72,7 +72,7 @@ drv.Tc = drv.C1 * drv.R1*drv.R2/(drv.R1+drv.R2); %T_drv
 sens.curr.Rs = 0.5;
 
 % Hewlett?Packard HEDS?5540#A06 optical encoder
-sens.enc.ppr = 500*4; % pulses per rotation
+sens.enc.ppr = 1024*4; % pulses per rotation
 sens.enc.pulse2deg = 360/sens.enc.ppr; % [pulses] ?> [deg]
 sens.enc.pulse2rad = 2*pi/sens.enc.ppr; % [pulses] ?> [rad]
 sens.enc.deg2pulse = sens.enc.ppr/360; % [deg] ?> [pulses]
