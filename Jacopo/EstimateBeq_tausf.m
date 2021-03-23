@@ -66,8 +66,8 @@ X = transpose(Xt);
 theta_star = (X*Xt)\X*Y;
 a = theta_star(1,1);
 b = theta_star(2,1);
-Beq = a*Kt*Rs;
-tausf = b*Kt*Rs*N;
+Beq = a*Kt/Rs;
+tausf = b*Kt*N/Rs;
 
 % found values
 sprintf(num2str(Beq))
