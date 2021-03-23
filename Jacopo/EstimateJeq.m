@@ -7,8 +7,8 @@ Beq = 7.94e-7;
 tausf = 9.09e-3;
 deg2rad = pi/180;
 
-threshold_min = 10;
-threshold_max = 14;
+threshold_min = 10.5;
+threshold_max = 12.7;
 
 load("data/accel_decel.mat");
 t = ia_best.time;
