@@ -2,47 +2,31 @@
 Kt = 7.68e-3;
 Rs = 0.5;
 N  = 14;
+Beq = 6.9524e-7;
+tausf = 0.0099;
 Tsample = 1e-3;
-Beq = 7.94e-7;
-tausf = 9.09e-3;
 deg2rad = pi/180;
 
-threshold_min = 10.5;
-threshold_max = 12.7;
+threshold_min = 500;
+threshold_max = 10000;
 
 load("data/accel_decel.mat");
 t = ia_best.time;
 n_sample = length(t);
 i = ia_best.signals.values;
 vs = Rs * i;
-wm = thl_u_best.signals(2).values * N * deg2rad;
-wm_prime = al_best_meas.signals.values * N * deg2rad * deg2rad;
-wm_prime = abs(wm_prime);
-filtered_wm_prime = [];
-filtered_wm = [];
-filtered_vs = [];
-filtered_t = [];
-j = 1;
-for i=1:n_sample
-    if(wm_prime(i)>threshold_min && wm_prime(i) < threshold_max)
-        filtered_wm_prime(j) = wm_prime(i);
-        filtered_wm(j) = wm(i);
-        filtered_vs(j) = vs(i);
-        filtered_t(j) = t(i);
-        j = j +1;
+wm = al_best_meas1.signals.values * N * deg2rad;
+am = al_best_meas.signals.values * N * deg2rad;
+torque = torquem_best.signals.values - (Beq * wm + tausf * sign(wm) / N);
+am = abs(am);
+torque = abs(torque);
+sum = 0;
+n = 0;
+for i = 1:n_sample
+    if am(i) ~= 0
+        sum = sum + torque(i)/am(i);
+        n = n + 1;
     end
 end
-
-% plotting results
-nexttile
-plot(filtered_t, filtered_vs)
-title('Voltage')
-nexttile
-plot(filtered_t, filtered_wm_prime)
-title('Acceleration (modulus)')
-nexttile
-plot(filtered_t, filtered_wm)
-title('Angular velocity')
-
-Jeq = (1/n_sample)*sum((1/wm_prime)*(vs*Kt/Rs - Beq*wm - (1/N)*tausf*sign(wm)));
-sprintf(num2str(Jeq))
+Beq = sum / n;
+sprintf(num2str(Beq))
