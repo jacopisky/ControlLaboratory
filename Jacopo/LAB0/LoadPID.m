@@ -67,7 +67,7 @@ function [Kp,Ki,Kd] = getPIDBode(plant, wgc, phim, alpha)
     Kd = Kp * Td;
     s = tf('s');
     C = Kp + Ki * 1/s + Kd * s;
-    [a,b,c,d] = margin(C *plant);
+    [a,b,c,d] = margin(C*plant);
     delta_wgc = c - wgc;
     delta_phim = d - phim;
     assert(delta_wgc < 0.01, "failed to build PID");
