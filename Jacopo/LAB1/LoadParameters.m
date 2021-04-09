@@ -1,6 +1,7 @@
 run("../LAB0/LoadParameters.m");
 run("../LAB0/LoadPID.m");
 run("../LAB0/EstimateMechParameters.m");
+run("LoadEstimatedParamsToPlant.m");
 
 io.awu.Kw = 5/request.ts;
 
