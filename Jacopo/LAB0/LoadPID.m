@@ -9,7 +9,6 @@ request.phm   = 90;   % phase margin
 
 % definitions
 request.sim.alpha = 4;
-pid.sim.T_l = 0.002;
 
 % simple model according to LAB0
 Km = drv.dcgain*mot.Kt/(mot.Kt*mot.Ke);
@@ -21,7 +20,7 @@ P = tf(P_num_reduced, P_den_reduced);
 
 % override
 [pid.Kp, pid.Ki, pid.Kd] = getPIDBodeFreq(P, 5, 60, request.sim.alpha);
-
+pid.sim.T_l = 0.002;
 
 % clear useless variables
 clear P;
@@ -29,6 +28,7 @@ clear Km;
 clear Tm;
 clear P_den_reduced;
 clear P_num_reduced;
+clear wgc;
 
 % set of utility routines
 function [Kp,Ki,Kd] = getPIDBodeRequests(plant, Mp, ts, tr, alpha)
@@ -65,4 +65,35 @@ function [Kp,Ki,Kd] = getPIDBode(plant, wgc, phim, alpha)
     delta_phim = d - phim;
     assert(delta_wgc < 0.01, "failed to build PID");
     assert(delta_phim < 0.01, "failed to build PID");
+end
+
+function [Kp,Ki,Kd] = getPIDProgram(P, Mp, ts, tr)
+    best_Mp = Inf;
+    best_ts = Inf;
+    best_tr = Inf;
+    bestKp  = 0;
+    bestKi  = 0;
+    bestKd  = 0;
+    for kp=0:1:50
+        for ki=0:1:10
+            for kd=0:1:10
+                s = tf('s');
+                C = kp + ki/s + kd*s;
+                W = feedback(C*P,1);
+                curr_Mp = stepinfo(W).Overshoot;
+                curr_ts = stepinfo(W).SettlingTime;
+                curr_tr = stepinfo(W).RiseTime;
+                if(curr_Mp <= Mp && curr_ts <= ts && curr_tr <= tr)
+                    if(curr_Mp <= best_Mp && curr_ts <= best_ts && curr_tr <= best_tr)
+                        bestKp = kp;
+                        bestKi = ki;
+                        bestKd = kd;
+                    end
+                end
+            end
+        end
+    end
+    Kp = bestKp;
+    Ki = bestKi;
+    Kd = bestKd;
 end
