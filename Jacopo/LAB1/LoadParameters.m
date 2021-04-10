@@ -27,7 +27,7 @@ delta = log(1/request.Mp)/sqrt(pi^2 + log(1/request.Mp)^2);
 wn    = 3/(delta*request.ts);
 
 p1    = -delta*wn + 1i*wn*sqrt(1-delta^2);
-p2    = -delta*wn - 1i*wn*sqrt(1-delta^2);
+p2    = conj(p1);
 
 ss.controller.K = place(ss.plant.A,ss.plant.B,[p1 p2]);
 ss.obs.wc    = 2*pi*50;
@@ -60,13 +60,66 @@ robust.controller3.K  = robust.controller3.K(1,2:3);
 robust.controller4.Ki = robust.controller4.K(1);
 robust.controller4.K  = robust.controller4.K(1,2:3);
 
+Tr1 = 0.15;
+Tr2 = 0.25;
+Tr3 = 0.5;
+Tr4 = 1;
+
+p1  = wn*exp(1i*(-pi+pi/4));
+p2  = conj(p1);
+p3  = wn*exp(1i*(-pi+pi/6));
+p4  = conj(p3);
+p5  = -wn;
+es.controller1.w0 = 2*pi/Tr1;
+es.controller2.w0 = 2*pi/Tr2;
+es.controller3.w0 = 2*pi/Tr3;
+es.controller4.w0 = 2*pi/Tr4;
+
+A1  = [0,1,0;0,0,1;0,-es.controller1.w0^2,0];
+A2  = [0,1,0;0,0,1;0,-es.controller2.w0^2,0];
+A3  = [0,1,0;0,0,1;0,-es.controller3.w0^2,0];
+A4  = [0,1,0;0,0,1;0,-es.controller4.w0^2,0];
+
+Az1   = [A1,[[0,0;0,0];ss.plant.C];[[0,0,0;0,0,0],ss.plant.A]];
+Az2   = [A2,[[0,0;0,0];ss.plant.C];[[0,0,0;0,0,0],ss.plant.A]];
+Az3   = [A3,[[0,0;0,0];ss.plant.C];[[0,0,0;0,0,0],ss.plant.A]];
+Az4   = [A4,[[0,0;0,0];ss.plant.C];[[0,0,0;0,0,0],ss.plant.A]];
+Bz    = [0;0;0;ss.plant.B];
+poles = [p1,p2,p3,p4,p5];
+
+es.controller1.Kz = place(Az1, Bz, poles);
+es.controller2.Kz = place(Az2, Bz, poles);
+es.controller3.Kz = place(Az3, Bz, poles);
+es.controller4.Kz = place(Az4, Bz, poles);
+es.controller1.Kpsi = es.controller1.Kz(1, 4:5);
+es.controller1.Kz = es.controller1.Kz(1, 1:3);
+es.controller2.Kpsi = es.controller2.Kz(1, 4:5);
+es.controller2.Kz = es.controller2.Kz(1, 1:3);
+es.controller3.Kpsi = es.controller3.Kz(1, 4:5);
+es.controller3.Kz = es.controller3.Kz(1, 1:3);
+es.controller4.Kpsi = es.controller4.Kz(1, 4:5);
+es.controller4.Kz = es.controller4.Kz(1, 1:3);
+
+
+tmp = es.controller1.Kz(1,3);
+es.controller1.Kz(1,3) = es.controller1.Kz(1,1);
+es.controller1.Kz(1,1) = tmp;
+tmp = es.controller2.Kz(1,3);
+es.controller2.Kz(1,3) = es.controller2.Kz(1,1);
+es.controller2.Kz(1,1) = tmp;
+tmp = es.controller3.Kz(1,3);
+es.controller3.Kz(1,3) = es.controller3.Kz(1,1);
+es.controller3.Kz(1,1) = tmp;
+tmp = es.controller4.Kz(1,3);
+es.controller4.Kz(1,3) = es.controller4.Kz(1,1);
+es.controller4.Kz(1,1) = tmp;
+
+
 clear a22;
 clear b2;
 clear c1;
 clear delta;
 clear wn;
-clear p1;
-clear p2;
 clear gains;
 clear sigma;
 clear wd;
@@ -77,3 +130,23 @@ clear opt4;
 clear A;
 clear B;
 clear C;
+clear poles;
+clear p1;
+clear p2;
+clear p3;
+clear p4;
+clear p5;
+clear Az1;
+clear Az2;
+clear Az3;
+clear Az4;
+clear Bz;
+clear A1;
+clear A2;
+clear A3;
+clear A4;
+clear tmp;
+clear Tr1;
+clear Tr2;
+clear Tr3;
+clear Tr4;
