@@ -5,7 +5,7 @@ run("LoadEstimatedParamsToPlant.m");
 
 io.awu.Kw = 5/request.ts;
 
-io.fwd.inertiaCompGain  = gbox.N*simp_model.Req*est_par.J_eq/(drv.dcgain*mot.Kt);
+io.fwd.inertiaCompGain  = gbox.N*(mot.R+sens.curr.Rs)*est_par.J_eq/(drv.dcgain*mot.Kt);
 io.fwd.frictionCompGain = mot.Req / (drv.dcgain*mot.Kt*gbox.N);
 io.fwd.BEMFCompGain     = gbox.N*mot.Ke/drv.dcgain;
 
@@ -113,7 +113,6 @@ es.controller3.Kz(1,1) = tmp;
 tmp = es.controller4.Kz(1,3);
 es.controller4.Kz(1,3) = es.controller4.Kz(1,1);
 es.controller4.Kz(1,1) = tmp;
-
 
 clear a22;
 clear b2;

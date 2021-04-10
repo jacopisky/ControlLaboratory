@@ -14,23 +14,14 @@ pid.sim.T_l = 0.002;
 % simple model according to LAB0
 Km = drv.dcgain*mot.Kt/(mot.Kt*mot.Ke);
 Tm = (mot.R+sens.curr.Rs)*(mot.J+mld.J/(gbox.N^2))/(mot.Kt*mot.Ke);
-P_num_reduced = [Km/gbox.N^2];
-P_den_reduced = [Tm 1 0];
+P_num_reduced = [Km];
+P_den_reduced = [Tm*gbox.N gbox.N 0];
 
 P = tf(P_num_reduced, P_den_reduced);
-
-% manual set (best for LAB0)
-pid.Kp = 60;
-pid.Ki = 100;
-pid.Kd = 1;
 
 % override
 [pid.Kp, pid.Ki, pid.Kd] = getPIDBodeFreq(P, 5, 60, request.sim.alpha);
 
-simp_model.Req = mot.R+sens.curr.Rs;
-simp_model.Km = Km;
-simp_model.Tm = Tm;
-simp_model.P = P;
 
 % clear useless variables
 clear P;
@@ -60,7 +51,9 @@ function [Kp,Ki,Kd] = getPIDBode(plant, wgc, phim, alpha)
     DeltaK = 1 / mag;
     DeltaPhi = -180 + phim - phase;
     tmp = tand(DeltaPhi);
-    Td = (tmp + sqrt(tmp*tmp + 4/alpha))/(2*wgc);
+    Td = (tmp + sqrt(tmp^2 + 4/alpha))/(2*wgc);
+    pid.sim.T_d = Td;
+    pid.sim.T_l = 5*wgc;
     Ti = alpha * Td;
     Kp = DeltaK * cosd(DeltaPhi);
     Ki = Kp / Ti;
