@@ -151,7 +151,6 @@ ees.estimator4.Le = transpose(place(transpose(ees.Ae4), transpose(ees.Ce), poles
 
 ees.controller = place(ss.plant.A, ss.plant.B, pcs);
 
-
 clear a22;
 clear b2;
 clear c1;
