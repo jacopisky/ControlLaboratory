@@ -17,10 +17,9 @@ P_num_reduced = [Km];
 P_den_reduced = [Tm*gbox.N gbox.N 0];
 
 P = tf(P_num_reduced, P_den_reduced);
-
-% override
-[pid.Kp, pid.Ki, pid.Kd] = getPIDBodeFreq(P, 5, 60, request.sim.alpha);
-pid.sim.T_l = 0.002;
+request.fc = getWgc(request.Mp, request.ts)/2/pi;
+[pid.Kp, pid.Ki, pid.Kd] = getPIDBodeFreq(P, request.fc, request.phm, request.sim.alpha);
+pid.sim.T_l = 1/(5*request.fc);
 
 % clear useless variables
 clear P;
@@ -29,14 +28,22 @@ clear Tm;
 clear P_den_reduced;
 clear P_num_reduced;
 clear wgc;
+clear fgc;
 
 % set of utility routines
+
+
 function [Kp,Ki,Kd] = getPIDBodeRequests(plant, Mp, ts, tr, alpha)
     [wgc, phim] = getWPhi(tr, ts, Mp);
     [Kp, Ki, Kd] = getPIDBode(plant, wgc, phim, alpha);
 end
 
-function [wgc, phim] = getWPhi(tr, ts, Mp)
+function wgc = getWgc(Mp, ts)
+    delta = log(1/Mp)/sqrt(pi^2+log(1/Mp)^2);
+    wgc = 3/delta/ts;
+end
+
+function [wgc, phim] = getWPhi(tr, Mp)
     wgc = 2/tr;
     phim = rad2deg(1.04 - 0.8*Mp);
 end
@@ -52,8 +59,6 @@ function [Kp,Ki,Kd] = getPIDBode(plant, wgc, phim, alpha)
     DeltaPhi = -180 + phim - phase;
     tmp = tand(DeltaPhi);
     Td = (tmp + sqrt(tmp^2 + 4/alpha))/(2*wgc);
-    pid.sim.T_d = Td;
-    pid.sim.T_l = 5*wgc;
     Ti = alpha * Td;
     Kp = DeltaK * cosd(DeltaPhi);
     Ki = Kp / Ti;

@@ -9,6 +9,7 @@ io.fwd.inertiaCompGain  = gbox.N*(mot.R+sens.curr.Rs)*est_par.J_eq/(drv.dcgain*m
 io.fwd.frictionCompGain = mot.Req / (drv.dcgain*mot.Kt*gbox.N);
 io.fwd.BEMFCompGain     = gbox.N*mot.Ke/drv.dcgain;
 
+% state space
 a22 = -(est_par.B_eq*mot.Req + mot.Kt*mot.Ke)/(est_par.J_eq*mot.Req);
 b2  = mot.Kt*drv.dcgain/(mot.Req*est_par.J_eq*gbox.N);
 c1  = 1;
@@ -33,6 +34,7 @@ ss.controller.K = place(ss.plant.A,ss.plant.B,[p1 p2]);
 ss.obs.wc    = 2*pi*50;
 ss.obs.delta = 1/sqrt(2);
 
+% robust state space tracking
 sigma = -delta*wn;
 wd    = wn*sqrt(1-delta^2);
 opt1 = [sigma+1i*wd, sigma-1i*wd, sigma];
@@ -60,6 +62,7 @@ robust.controller3.K  = robust.controller3.K(1,2:3);
 robust.controller4.Ki = robust.controller4.K(1);
 robust.controller4.K  = robust.controller4.K(1,2:3);
 
+% error space
 Tr1 = 0.15;
 Tr2 = 0.25;
 Tr3 = 0.5;
@@ -114,6 +117,41 @@ tmp = es.controller4.Kz(1,3);
 es.controller4.Kz(1,3) = es.controller4.Kz(1,1);
 es.controller4.Kz(1,1) = tmp;
 
+% extended error space
+pc1 = -delta*wn + 1i*wn*sqrt(1-delta^2);
+pc2 = conj(pc1);
+
+p1 = 2*wn*exp(1i*(-pi+pi/3));
+p2 = conj(p1);
+p3 = 2*wn*exp(1i*(-pi+pi/6));
+p4 = conj(p3);
+p5 = -2*wn;
+
+ees.controller1.w0 = 2*pi/Tr1;
+ees.controller2.w0 = 2*pi/Tr2;
+ees.controller3.w0 = 2*pi/Tr3;
+ees.controller4.w0 = 2*pi/Tr4;
+
+ees.Croh = [1 0 0];
+
+ees.Ae1   = [A1, [0 0; 0 0; 0 0];ss.plant.B*ees.Croh, ss.plant.A];
+ees.Ae2   = [A2, [0 0; 0 0; 0 0];ss.plant.B*ees.Croh, ss.plant.A];
+ees.Ae3   = [A3, [0 0; 0 0; 0 0];ss.plant.B*ees.Croh, ss.plant.A];
+ees.Ae4   = [A4, [0 0; 0 0; 0 0];ss.plant.B*ees.Croh, ss.plant.A];
+ees.Be = [0;0;0;ss.plant.B];
+ees.Ce = [0, 0, 0, ss.plant.C];
+
+pcs   = [pc1, pc2];
+poles = [p1,p2,p3,p4,p5];
+
+ees.estimator1.Le = transpose(place(transpose(ees.Ae1), transpose(ees.Ce), poles));
+ees.estimator2.Le = transpose(place(transpose(ees.Ae2), transpose(ees.Ce), poles));
+ees.estimator3.Le = transpose(place(transpose(ees.Ae3), transpose(ees.Ce), poles));
+ees.estimator4.Le = transpose(place(transpose(ees.Ae4), transpose(ees.Ce), poles));
+
+ees.controller = place(ss.plant.A, ss.plant.B, pcs);
+
+
 clear a22;
 clear b2;
 clear c1;
@@ -149,3 +187,6 @@ clear Tr1;
 clear Tr2;
 clear Tr3;
 clear Tr4;
+clear pc1;
+clear pc2;
+clear pcs;
