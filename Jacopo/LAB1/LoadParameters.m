@@ -41,6 +41,9 @@ opt1 = [sigma+1i*wd, sigma-1i*wd, sigma];
 opt2 = [sigma, sigma, sigma];
 opt3 = [2*sigma+1i*wd, 2*sigma-1i*wd, 2*sigma];
 opt4 = [2*sigma+1i*wd, 2*sigma-1i*wd, 3*sigma];
+
+opt5 = [5*sigma+1i*wd, 5*sigma-1i*wd, 3*sigma];
+
 A    = [0, ss.plant.C; [0;0], ss.plant.A];
 B    = [0; ss.plant.B];
 C    = [0, ss.plant.C];
@@ -49,6 +52,7 @@ robust.controller1.K = place(A, B, opt1);
 robust.controller2.K = acker(A, B, opt2);
 robust.controller3.K = place(A, B, opt3);
 robust.controller4.K = place(A, B, opt4);
+robust.controller5.K = place(A, B, opt5);
 
 robust.controller1.Ki = robust.controller1.K(1);
 robust.controller1.K  = robust.controller1.K(1,2:3);
@@ -62,6 +66,9 @@ robust.controller3.K  = robust.controller3.K(1,2:3);
 robust.controller4.Ki = robust.controller4.K(1);
 robust.controller4.K  = robust.controller4.K(1,2:3);
 
+robust.controller5.Ki = robust.controller5.K(1);
+robust.controller5.K  = robust.controller5.K(1,2:3);
+
 % error space
 Tr1 = 0.15;
 Tr2 = 0.25;
@@ -73,6 +80,7 @@ p2  = conj(p1);
 p3  = wn*exp(1i*(-pi+pi/6));
 p4  = conj(p3);
 p5  = -wn;
+
 es.controller1.w0 = 2*pi/Tr1;
 es.controller2.w0 = 2*pi/Tr2;
 es.controller3.w0 = 2*pi/Tr3;
