@@ -18,8 +18,9 @@ P_den_reduced = [Tm*gbox.N gbox.N 0];
 
 P = tf(P_num_reduced, P_den_reduced);
 request.fc = getWgc(request.Mp, request.ts)/2/pi;
+
 [pid.Kp, pid.Ki, pid.Kd] = getPIDBodeFreq(P, request.fc, request.phm, request.sim.alpha);
-pid.sim.T_l = 1/(5*request.fc);
+pid.sim.T_l = 1/(2*(2*pi*request.fc));
 
 % clear useless variables
 clear P;

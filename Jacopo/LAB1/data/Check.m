@@ -1,4 +1,4 @@
-load("SSnominal120.mat");
+load("SSintegral40k3.mat");
 
 t = thl_meas.time;
 s =  thl_meas.signals.values;
