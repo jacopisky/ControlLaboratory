@@ -12,3 +12,15 @@ io.fwd.BEMFCompGain     = gbox.N*mot.Ke/drv.dcgain;
 %sim.T_samp = 0.001;
 sim.T_samp = 0.01;
 %sim.T_samp = 0.05;
+
+% state space
+Km = drv.dcgain*mot.Kt/(mot.Kt*mot.Ke + (mot.R+sens.curr.Rs)*mech.Beq);
+Tm = (mot.R+sens.curr.Rs)*mech.Jeq/(mot.Kt*mot.Ke + (mot.R+sens.curr.Rs)*mech.Beq);
+
+ss.plant.A = [0 1; 0 -1/Tm];
+ss.plant.B = [0;Km/gbox.N/Tm];
+ss.plant.C = [1 0];
+ss.plant.D = 0;
+
+clear Tm;
+clear Km;
