@@ -43,10 +43,8 @@ Be = [0;state_space.plant.B];
 sigma = -delta*wn;
 wd = wn*sqrt(1-delta^2);
 
-% Pole placement
 poles = [2*sigma + 1i*wd, 2*sigma - 1i*wd, 2*sigma];
 
-% Ke
 Ke = place(Ae,Be,poles);
 robust.controller.Ki = Ke(1);
 robust.controller.Ke = Ke(1,2:3);
