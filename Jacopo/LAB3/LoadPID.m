@@ -1,8 +1,8 @@
 run("LoadParameters.m");
 
 % requests (used or not depending on design method)
-request.Mp    = 0.1;  % max overshooting percentage
-request.ts    = 0.15; % settling time
+request.Mp    = 0.3;  % max overshooting percentage
+request.ts    = 0.85; % settling time
 request.tr    = 0.1; % rising time
 request.fc    = 5;    % crossover frequency
 request.phm   = 60;   % phase margin
@@ -11,29 +11,23 @@ request.phm   = 60;   % phase margin
 request.sim.alpha = 4;
 
 % simple model according to LAB0
-Km = drv.dcgain*mot.Kt/(mot.Kt*mot.Ke);
-Tm = (mot.R+sens.curr.Rs)*(mot.J+mld.J/(gbox.N^2))/(mot.Kt*mot.Ke);
-P_num_reduced = [Km];
-P_den_reduced = [Tm*gbox.N gbox.N 0];
+s = tf('s');
+D_tau_prime = mld.Jeq*mld.Jb*s^3+(mld.Jeq*mld.Bb+mld.Jb*mld.Beq)*s^2+(mld.Beq*mld.Bb+mld.k*(mld.Jeq+mld.Jb/gbox.N/gbox.N))*s+mld.k*(mld.Beq+mld.Bb/gbox.N/gbox.N);
+P = 1/gbox.N/s*drv.dcgain*mot.Kt*(mld.Jb*s^2+mld.Bb*s+mld.k)/((sens.curr.Rs+mot.R)*D_tau_prime+mot.Kt*mot.Ke*(mld.Jb*s^2+mld.Bb*s+mld.k));
 
-P = tf(P_num_reduced, P_den_reduced);
 [request.wgc, request.phm] = getWgcPhim(request.Mp, request.ts);
+request.fc = request.wgc/2/pi;
 
 [pid.Kp, pid.Ki, pid.Kd] = getPIDBodeFreq(P, request.fc, request.phm, request.sim.alpha);
-pid.sim.T_l = 1/(2*(2*pi*request.fc));
+pid.sim.T_l = 1/(10*(2*pi*request.fc));
+pid.Kw      = 5/request.ts;
 
 % clear useless variables
 clear P;
-clear Km;
-clear Tm;
-clear P_den_reduced;
-clear P_num_reduced;
-clear wgc;
-clear fgc;
+clear s;
+clear D_tau_prime;
 
 % set of utility routines
-
-
 function [Kp,Ki,Kd] = getPIDBodeRequests(plant, Mp, ts, tr, alpha)
     [wgc, phim] = getWPhi(tr, ts, Mp);
     [Kp, Ki, Kd] = getPIDBode(plant, wgc, phim, alpha);

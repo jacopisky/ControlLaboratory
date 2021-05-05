@@ -79,7 +79,7 @@ mld.tausf = 1.0e-2;          % total static friction (estimated)
 mech.Jeq = mot.J+mld.J/(gbox.N)^2;
 mech.Beq = mot.B+mld.B/(gbox.N)^2;
 %override 
-mech.Beq = 2e-6;
+mech.Beq = 2e-6; % (estimated)
 
 %% Voltage driver nominal parameters
 % op-amp circuit params
