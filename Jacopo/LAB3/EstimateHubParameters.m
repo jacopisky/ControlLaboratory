@@ -1,4 +1,3 @@
-%% Preliminary imports
 %% Importing experiment data & estimation
 load("data/hub_test.mat");
 t = hub_test.time;
@@ -31,10 +30,10 @@ for i=2:size(t)
 end
 
 %% Plot detected peaks
-% figure
-% plot(t, abs(theta_b))
-% hold on
-% plot(t, visual)
+figure
+plot(t, abs(theta_b))
+hold on
+plot(t, visual)
 
 %% Linear Regression
 Y = transpose(log(peaks));
