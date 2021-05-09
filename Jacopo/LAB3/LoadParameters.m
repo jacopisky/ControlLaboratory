@@ -151,7 +151,8 @@ extended_bryson_lqr.controller.Ki = K(1);
 %%
 q22 = 1/100;
 p = findResonantPole(state_space.A);
-w0 = abs(imag(p));
+[wn, zeta] = damp(p);
+w0 = wn*sqrt(1-zeta^2);
 Aq_prime = [0 1; -w0^2 0];
 Bq_prime = [0; 1];
 Cq_prime = [sqrt(q22)*w0^2 0];
@@ -159,7 +160,7 @@ Dq_prime = 0;
 state_space.Aq = Aq_prime;
 state_space.Bq = [[0;0] Bq_prime [0 0; 0 0]];
 state_space.Cq = [[0 0]; Cq_prime; [0 0; 0 0]];
-state_space.Dq = diag([5.0*deg2rad, Dq_prime, 0, 0]);
+state_space.Dq = diag([1/(5.0*deg2rad), Dq_prime, 0, 0]);
 state_space.Aa = [
     state_space.A [0 0; 0 0; 0 0; 0 0];
     state_space.Bq state_space.Aq
@@ -186,8 +187,9 @@ robust.Be = [0; state_space.Ba];
 robust.Ce = [0 state_space.Ca];
 robust.De = 0;
 % first trial was 1/100 --> 10
+qi = 1/100;
 Qe = [
-   1/100 [0 0 0 0 0 0];
+   qi [0 0 0 0 0 0];
    [0;0;0;0;0;0] Qa
 ];
 Re = Ra;
@@ -237,6 +239,7 @@ clear num;
 clear den;
 clear w0;
 clear q22;
+clear qi;
 
 %% Definition of Bode Method
 % set of utility routines
