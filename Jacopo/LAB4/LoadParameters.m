@@ -224,3 +224,7 @@ sens.mpu.gyro.noisevar = sens.mpu.acc.noisestd ^2; % output noise var [degs^2]
 %% Compute
 body.M11 = 2*wheel.Iyy + 2*gbox.N*gbox.N*mot.rot.Iyy + (body.m + 2*wheel.m + 2*mot.rot.m)*wheel.r*wheel.r;
 body.M22 = body.Iyy + 2*(1-gbox.N)*(1-gbox.N)*mot.rot.Iyy+body.m*body.zb*body.zb+2*mot.rot.m*mot.rot.zb*mot.rot.zb;
+static.Fv = [2*(gbox.B+wheel.B) -2*gbox.B; -2*gbox.B 2*gbox.B];
+static.C22_gain = -(body.m*body.zb+2*mot.rot.m*mot.rot.zb)*wheel.r;
+static.M12_gain = 2*gbox.N*(1-gbox.N)*mot.rot.Iyy+(body.m*body.zb+2*mot.rot.m*mot.rot.zb)*wheel.r;
+static.g2_gain = -(body.m*body.zb+2*mot.rot.m*mot.rot.zb)*g;
