@@ -1,5 +1,4 @@
 % General parameters and conversion gains
-
 % controller sampling time
 Ts = 1e-2;
 
@@ -19,10 +18,10 @@ ozin2Nm = 0.706e-2; % [oz*inch] -> [N*m]
 
 % robot initial condition
 x0 =[ ...
- 0, ... % gam(0)
+ 0, ...         % gam(0)
  5*deg2rad, ... % th(0)
- 0, ... % dot_gam(0)
- 0]; % dot_th(0)
+ 0, ...         % dot_gam(0)
+ 0];            % dot_th(0)
 
 %% DC motor data
 
@@ -221,3 +220,7 @@ sens.mpu.gyro.LSB2rads = sens.mpu.gyro.LSB2degs * deg2rad; % out quantization [r
 sens.mpu.gyro.bw = 98; % out low-pass filter BW [Hz]
 sens.mpu.gyro.noisestd = 5e-3*sqrt(100); % output noise std [degs-rms]
 sens.mpu.gyro.noisevar = sens.mpu.acc.noisestd ^2; % output noise var [degs^2]
+
+%% Compute
+body.M11 = 2*wheel.Iyy + 2*gbox.N*gbox.N*mot.rot.Iyy + (body.m + 2*wheel.m + 2*mot.rot.m)*wheel.r*wheel.r;
+body.M22 = body.Iyy + 2*(1-gbox.N)*(1-gbox.N)*mot.rot.Iyy+body.m*body.zb*body.zb+2*mot.rot.m*mot.rot.zb*mot.rot.zb;
