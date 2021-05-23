@@ -268,7 +268,7 @@ lqr_integral.gamma_bar = pi/18;
 lqr_integral.theta_bar = pi/360;
 lqr_integral.u_bar = 1;
 
-q11 = 0.1;
+q11 = 1;
 lqr_integral.Q = diag([q11 1/lqr_integral.gamma_bar^2 1/lqr_integral.theta_bar^2 0 0]);
 lqr_integral.r = 1/lqr_integral.u_bar^2;
 
