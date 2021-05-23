@@ -2,6 +2,8 @@
 % controller sampling time
 Ts = 1e-2;
 
+fc = 0.35;
+
 % gravity acc [m/s^2]
 g = 9.81;
 
@@ -15,13 +17,6 @@ rad2deg = 180/pi; % [rad] -> [deg]
 g2ms2 = g; % [acc_g] -> [m/s^2]
 ms22g = 1/g; % [m/s^2] -> [acc_g]
 ozin2Nm = 0.706e-2; % [oz*inch] -> [N*m]
-
-% robot initial condition
-x0 =[ ...
- 0, ...         % gam(0)
- 5*deg2rad, ... % th(0)
- 0, ...         % dot_gam(0)
- 0];            % dot_th(0)
 
 %% DC motor data
 
@@ -222,9 +217,76 @@ sens.mpu.gyro.noisestd = 5e-3*sqrt(100); % output noise std [degs-rms]
 sens.mpu.gyro.noisevar = sens.mpu.acc.noisestd ^2; % output noise var [degs^2]
 
 %% Compute
-body.M11 = 2*wheel.Iyy + 2*gbox.N*gbox.N*mot.rot.Iyy + (body.m + 2*wheel.m + 2*mot.rot.m)*wheel.r*wheel.r;
-body.M22 = body.Iyy + 2*(1-gbox.N)*(1-gbox.N)*mot.rot.Iyy+body.m*body.zb*body.zb+2*mot.rot.m*mot.rot.zb*mot.rot.zb;
-static.Fv = [2*(gbox.B+wheel.B) -2*gbox.B; -2*gbox.B 2*gbox.B];
-static.C22_gain = -(body.m*body.zb+2*mot.rot.m*mot.rot.zb)*wheel.r;
-static.M12_gain = 2*gbox.N*(1-gbox.N)*mot.rot.Iyy+(body.m*body.zb+2*mot.rot.m*mot.rot.zb)*wheel.r;
-static.g2_gain = -(body.m*body.zb+2*mot.rot.m*mot.rot.zb)*g;
+nlmodel.ua2tau = 2*gbox.N*mot.Kt/mot.R*[1;-1];
+nlmodel.M11 = 2*wheel.Iyy + 2*gbox.N*gbox.N*mot.rot.Iyy + (body.m + 2*wheel.m + 2*mot.rot.m)*wheel.r*wheel.r;
+nlmodel.M22 = body.Iyy + 2*(1-gbox.N)*(1-gbox.N)*mot.rot.Iyy+body.m*body.zb*body.zb+2*mot.rot.m*mot.rot.zb*mot.rot.zb;
+nlmodel.Fv = [2*(gbox.B+wheel.B) -2*gbox.B; -2*gbox.B 2*gbox.B];
+nlmodel.Fv_prime = nlmodel.Fv + 2*gbox.N*gbox.N*mot.Kt*mot.Ke/mot.R*[1 -1; -1 1];
+
+nlmodel.C22_gain = -(body.m*body.zb+2*mot.rot.m*mot.rot.zb)*wheel.r;
+nlmodel.M12_gain = 2*gbox.N*(1-gbox.N)*mot.rot.Iyy+(body.m*body.zb+2*mot.rot.m*mot.rot.zb)*wheel.r;
+nlmodel.g2_gain = -(body.m*body.zb+2*mot.rot.m*mot.rot.zb)*g;
+
+linmodel.M11 = nlmodel.M11;
+linmodel.M12 = 2*gbox.N*(1-gbox.N)*mot.rot.Iyy+(body.m*body.zb+2*mot.rot.m*mot.rot.zb)*wheel.r;
+linmodel.M22 = nlmodel.M22;
+linmodel.M = [linmodel.M11 linmodel.M12; linmodel.M12 linmodel.M22];
+
+linmodel.G = [0 0; 0 nlmodel.g2_gain];
+z = tf('z', Ts);
+Hz = Ts/(1/fc*z + Ts-1/fc);
+[stvar_est.Hz_Num, stvar_est.Hz_Den] = tfdata(Hz);
+stvar_est.Hz_Num = cell2mat(stvar_est.Hz_Num);
+stvar_est.Hz_Den = cell2mat(stvar_est.Hz_Den);
+
+
+state_space.A = [[0 0;0 0] eye(2); -linmodel.M\linmodel.G -linmodel.M\nlmodel.Fv_prime];
+state_space.B = 2*gbox.N*mot.Kt/mot.R*[[0 0;0 0];inv(linmodel.M)]*[1;-1];
+state_space.C = [1 0 0 0];
+state_space.D = 0;
+
+[state_space.Phi, state_space.Gamma, state_space.H] = ssdata(c2d(ss(state_space.A, state_space.B, state_space.C, state_space.D), Ts, 'zoh'));
+
+X = linsolve([state_space.Phi-eye(4) state_space.Gamma; state_space.H 0], [0;0;0;0;1]);
+Nx = X(1:4);
+Nu = X(5);
+
+lqr_nominal.gamma_bar = pi/18;
+lqr_nominal.theta_bar = pi/360;
+lqr_nominal.u_bar = 1;
+
+lqr_nominal.Q = diag([1/lqr_nominal.gamma_bar^2 1/lqr_nominal.theta_bar^2 0 0]);
+lqr_nominal.r = 1/lqr_nominal.u_bar^2;
+
+lqr_nominal.rho = 500;
+lqr_nominal.K = dlqr(state_space.Phi, state_space.Gamma, lqr_nominal.Q, lqr_nominal.r*lqr_nominal.rho);
+
+%% Integral Action
+robust.Phi = [1 state_space.H; [0;0;0;0] state_space.Phi];
+robust.Gamma = [0; state_space.Gamma];
+lqr_integral.gamma_bar = pi/18;
+lqr_integral.theta_bar = pi/360;
+lqr_integral.u_bar = 1;
+
+q11 = 0.1;
+lqr_integral.Q = diag([q11 1/lqr_integral.gamma_bar^2 1/lqr_integral.theta_bar^2 0 0]);
+lqr_integral.r = 1/lqr_integral.u_bar^2;
+
+lqr_integral.rho = 500;
+lqr_integral.K = dlqr(robust.Phi, robust.Gamma, lqr_integral.Q, lqr_integral.r*lqr_integral.rho);
+lqr_integral.K = lqr_integral.K(2:5);
+lqr_integral.Ki = lqr_integral.K(1);
+
+% robot initial condition
+x0 = [0, 0, 0, 0];
+x01 =[ ...
+ 0, ...  % gam(0)
+ 5, ...  % th(0)
+ 0, ...  % dot_gam(0)
+ 0];     % dot_th(0)
+
+
+clear X;
+clear z;
+clear Hz;
+clear q11;
