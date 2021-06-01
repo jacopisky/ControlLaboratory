@@ -15,10 +15,11 @@ request.sim.alpha = 4;
 mld.Jeq = mot.J + mld.Jh/gbox.N/gbox.N;
 mld.Beq = mech.Beq;
 
-%% Estimated Hub Parameters (override)
-%run("EstimateHubParameters.m");
-%mld.Bb = est_par.Bb;
-%mld.k = est_par.k;
+%% Estimated Hub Parameters
+run("EstimateHubParameters.m");
+%% Set Estimated Hub Parameters
+mld.Bb = est_par.Bb;
+mld.k = est_par.k;
 
 %%  PID Design
 % simple model according to LAB3
@@ -149,7 +150,7 @@ K = lqr(sysG, extended_bryson_lqr.Q, extended_bryson_lqr.R);
 extended_bryson_lqr.controller.K = K(2:5);
 extended_bryson_lqr.controller.Ki = K(1);
 %%
-q22 = 1/100;
+q22 = 1;
 p = findResonantPole(state_space.A);
 [wn, zeta] = damp(p);
 w0 = wn*sqrt(1-zeta^2);
@@ -240,6 +241,7 @@ clear den;
 clear w0;
 clear q22;
 clear qi;
+clear zeta;
 
 %% Definition of Bode Method
 % set of utility routines
