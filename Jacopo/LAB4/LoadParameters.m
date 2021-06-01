@@ -284,7 +284,7 @@ x01 =[ ...
  5, ...  % th(0)
  0, ...  % dot_gam(0)
  0];     % dot_th(0)
-
+x02 = [0 5*deg2rad 0 0];
 
 clear X;
 clear z;
