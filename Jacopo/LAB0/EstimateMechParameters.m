@@ -1,11 +1,9 @@
-
 [Beq_a, tausf_a] = estimateBeq_tausf("data/least_square_positive.mat");
 [Beq_b, tausf_b] = estimateBeq_tausf("data/least_square_negative.mat");
 
 est_par.B_eq = (Beq_a + Beq_b)/2;
 est_par.tau_sf = (tausf_a + tausf_b)/2;
 est_par.J_eq = estimateJeq("data/accel_decel.mat", est_par.B_eq, est_par.tau_sf);
-
 
 % clearing useless variables
 clear tausf_a;

@@ -5,7 +5,7 @@ run("../LAB0/EstimateMechParameters.m");
 run("../LAB1/LoadEstimatedParamsToPlant.m");
 
 %% Requirements Specification
-request.Mp    = 0.3;  % max overshooting percentage
+request.Mp    = 0.3;  % max overshooting
 request.ts    = 0.85; % settling time
 
 % definitions
@@ -17,6 +17,7 @@ mld.Beq = mech.Beq;
 
 %% Estimated Hub Parameters
 run("EstimateHubParameters.m");
+
 %% Set Estimated Hub Parameters
 mld.Bb = est_par.Bb;
 mld.k = est_par.k;
@@ -150,7 +151,7 @@ K = lqr(sysG, extended_bryson_lqr.Q, extended_bryson_lqr.R);
 extended_bryson_lqr.controller.K = K(2:5);
 extended_bryson_lqr.controller.Ki = K(1);
 %%
-q22 = 1;
+q22 = 100;
 p = findResonantPole(state_space.A);
 [wn, zeta] = damp(p);
 w0 = wn*sqrt(1-zeta^2);

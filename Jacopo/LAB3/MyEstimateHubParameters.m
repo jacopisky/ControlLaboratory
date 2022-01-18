@@ -77,8 +77,6 @@ for i=1:count2-1
 end
 w_hat = 1/count * sum(Tk);
 wn_hat = w_hat / sqrt(1-delta_hat^2);
-wn_hat
-delta_hat
 est_par.k  = abs(mld.Jb*wn_hat^2);
 est_par.Bb = 2*sqrt(mld.Jb*est_par.k)*delta_hat;
 
